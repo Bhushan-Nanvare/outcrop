@@ -1,0 +1,25 @@
+<main>
+  <header>
+    <h1>Outcrop</h1>
+    <p class="tagline">Static analysis for Java codebases</p>
+  </header>
+
+  <section>
+    <h2>Stage 1</h2>
+    <p>
+      The backend is running and this page is reading from it. Repository analysis
+      is not implemented yet.
+    </p>
+
+    <dl>
+      <dt>API</dt>
+      @if (info(); as service) {
+        <dd>{{ service.name }} {{ service.version }}</dd>
+      } @else if (unreachable()) {
+        <dd class="unreachable">not reachable on port 8080</dd>
+      } @else {
+        <dd class="pending">checking</dd>
+      }
+    </dl>
+  </section>
+</main>
