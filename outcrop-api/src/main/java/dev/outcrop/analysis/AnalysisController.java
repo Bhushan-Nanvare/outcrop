@@ -29,6 +29,11 @@ class AnalysisController {
 				.body(AnalysisResponse.from(analysis));
 	}
 
+	@PostMapping("/{id}/run")
+	AnalysisResponse run(@PathVariable UUID id) {
+		return AnalysisResponse.from(service.run(id));
+	}
+
 	@GetMapping("/{id}")
 	AnalysisResponse get(@PathVariable UUID id) {
 		return AnalysisResponse.from(service.get(id));

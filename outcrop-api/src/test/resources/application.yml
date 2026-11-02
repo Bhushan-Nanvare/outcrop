@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:outcrop;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  flyway:
+    enabled: false
+
+outcrop:
+  version: test
+  clone:
+    workspace: ${java.io.tmpdir}/outcrop-test
+    max-java-files: 5000
+    max-size-mb: 250
+    timeout-seconds: 30

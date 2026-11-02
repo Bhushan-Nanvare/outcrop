@@ -35,6 +35,12 @@ public class Analysis {
 	@Column(name = "failure_reason")
 	private String failureReason;
 
+	@Column(name = "commit_sha")
+	private String commitSha;
+
+	@Column(name = "java_file_count")
+	private Integer javaFileCount;
+
 	protected Analysis() {
 	}
 
@@ -48,6 +54,11 @@ public class Analysis {
 	public void start() {
 		this.status = AnalysisStatus.RUNNING;
 		this.startedAt = Instant.now();
+	}
+
+	public void recordClone(String commitSha, int javaFileCount) {
+		this.commitSha = commitSha;
+		this.javaFileCount = javaFileCount;
 	}
 
 	public void complete() {
@@ -87,6 +98,14 @@ public class Analysis {
 
 	public String getFailureReason() {
 		return failureReason;
+	}
+
+	public String getCommitSha() {
+		return commitSha;
+	}
+
+	public Integer getJavaFileCount() {
+		return javaFileCount;
 	}
 
 }

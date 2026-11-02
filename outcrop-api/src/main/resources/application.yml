@@ -4,6 +4,14 @@ spring:
   threads:
     virtual:
       enabled: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/outcrop
+    username: ${OUTCROP_DB_USER:postgres}
+    password: ${OUTCROP_DB_PASSWORD}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
 
 server:
   port: 8080
@@ -16,3 +24,8 @@ management:
 
 outcrop:
   version: @project.version@
+  clone:
+    workspace: ${java.io.tmpdir}/outcrop
+    max-java-files: 5000
+    max-size-mb: 250
+    timeout-seconds: 120

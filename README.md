@@ -13,8 +13,9 @@ statement it produces is anchored to a file and a line.
 
 ## Status
 
-Stage 1 of 11. Both applications build, start, and talk to each other. No
-analysis is implemented yet.
+Stage 3 of 11. An analysis can be created and then run, which shallow-clones the
+repository, records the commit it resolved to and how many Java files it holds,
+and deletes the working copy. Nothing parses the source yet.
 
 ## Stack
 
@@ -22,14 +23,26 @@ analysis is implemented yet.
 | --- | --- |
 | Backend | Java 21, Spring Boot 4.1 |
 | Frontend | Angular 22, TypeScript 6 |
-| Database | PostgreSQL (stage 2) |
+| Database | PostgreSQL, Flyway migrations |
 | Parsing | JavaParser (stage 4) |
 | Graph algorithms | JGraphT (stage 5) |
 | Narration | Gemini (stage 9) |
 
 ## Running locally
 
-Requires JDK 21 and Node 20 or newer.
+Requires JDK 21, Node 20 or newer, and PostgreSQL.
+
+Create the database once:
+
+```
+createdb -U postgres outcrop
+```
+
+The password is read from the environment and is never committed:
+
+```
+setx OUTCROP_DB_PASSWORD your-postgres-password
+```
 
 Backend, from `outcrop-api`:
 
@@ -37,8 +50,23 @@ Backend, from `outcrop-api`:
 ./mvnw spring-boot:run
 ```
 
-Listens on port 8080. `GET /api/meta` returns the service name and version, and
-`GET /actuator/health` reports health.
+Listens on port 8080. Flyway applies migrations on startup.
+
+| Endpoint | Purpose |
+| --- | --- |
+| `POST /api/analyses` | Create an analysis for a GitHub repository URL |
+| `POST /api/analyses/{id}/run` | Clone the repository and record the result |
+| `GET /api/analyses/{id}` | Fetch one analysis |
+| `GET /api/analyses` | List analyses, newest first |
+| `GET /api/meta` | Service name and version |
+| `GET /actuator/health` | Health check |
+
+Cloning is bounded by `outcrop.clone` in `application.yml`: a working directory,
+a Java file limit, a total size limit and a transport timeout. Clones are shallow
+and the working copy is deleted as soon as the analysis finishes.
+
+`run` is synchronous for now, so the request stays open for the length of the
+clone. Stage 7 moves it onto a background job with progress over SSE.
 
 Frontend, from `outcrop-web`:
 
@@ -56,6 +84,10 @@ two run same-origin during development and no CORS configuration is needed.
 cd outcrop-api && ./mvnw test
 cd outcrop-web && npm test
 ```
+
+Backend tests run against in-memory H2 in PostgreSQL mode, so they need no
+running database. The trade-off is that the Flyway migrations themselves are not
+exercised by the test suite; that arrives with the integration tests in stage 11.
 
 ## Roadmap
 
