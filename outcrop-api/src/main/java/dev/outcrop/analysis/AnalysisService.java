@@ -1,8 +1,11 @@
 package dev.outcrop.analysis;
 
-import dev.outcrop.clone.ClonedRepository;
 import dev.outcrop.clone.CloneFailedException;
+import dev.outcrop.clone.ClonedRepository;
 import dev.outcrop.clone.RepositoryCloner;
+import dev.outcrop.parse.JavaSourceParser;
+import dev.outcrop.parse.ParsedSources;
+import dev.outcrop.source.SourceWriter;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
@@ -15,9 +18,16 @@ public class AnalysisService {
 
 	private final RepositoryCloner cloner;
 
-	AnalysisService(AnalysisRepository repository, RepositoryCloner cloner) {
+	private final JavaSourceParser parser;
+
+	private final SourceWriter sourceWriter;
+
+	AnalysisService(AnalysisRepository repository, RepositoryCloner cloner, JavaSourceParser parser,
+			SourceWriter sourceWriter) {
 		this.repository = repository;
 		this.cloner = cloner;
+		this.parser = parser;
+		this.sourceWriter = sourceWriter;
 	}
 
 	@Transactional
@@ -42,6 +52,10 @@ public class AnalysisService {
 
 		try (ClonedRepository cloned = cloner.cloneRepository(analysis.getRepositoryUrl())) {
 			analysis.recordClone(cloned.commitSha(), cloned.javaFileCount());
+
+			ParsedSources parsed = parser.parse(cloned.path());
+			int classCount = sourceWriter.write(analysis.getId(), parsed);
+			analysis.recordParse(classCount, parsed.failedFiles());
 			analysis.complete();
 		}
 		catch (CloneFailedException e) {

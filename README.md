@@ -13,9 +13,9 @@ statement it produces is anchored to a file and a line.
 
 ## Status
 
-Stage 3 of 11. An analysis can be created and then run, which shallow-clones the
-repository, records the commit it resolved to and how many Java files it holds,
-and deletes the working copy. Nothing parses the source yet.
+Stage 4 of 11. Running an analysis clones the repository, parses every Java file
+into classes, methods, annotations and imports, stores them, and deletes the
+working copy. Nothing builds the dependency graph yet.
 
 ## Stack
 
@@ -24,7 +24,7 @@ and deletes the working copy. Nothing parses the source yet.
 | Backend | Java 21, Spring Boot 4.1 |
 | Frontend | Angular 22, TypeScript 6 |
 | Database | PostgreSQL, Flyway migrations |
-| Parsing | JavaParser (stage 4) |
+| Parsing | JavaParser |
 | Graph algorithms | JGraphT (stage 5) |
 | Narration | Gemini (stage 9) |
 
@@ -66,7 +66,21 @@ a Java file limit, a total size limit and a transport timeout. Clones are shallo
 and the working copy is deleted as soon as the analysis finishes.
 
 `run` is synchronous for now, so the request stays open for the length of the
-clone. Stage 7 moves it onto a background job with progress over SSE.
+clone and parse. Stage 7 moves it onto a background job with progress over SSE.
+
+## What the parser extracts
+
+For every `.java` file: the package, each top-level type with its kind (class,
+interface, enum, record, annotation), the annotations on it, the file's imports,
+and each declared method with its return type, parameter count and line number.
+
+Two deliberate limits. Nested and inner types are not extracted, since they are
+rarely separate nodes in a dependency graph. Imports are recorded per class
+rather than per file, which duplicates them when one file holds several types.
+
+A file that fails to parse is counted and skipped rather than failing the run,
+and the count is reported as `parseFailureCount` on the analysis. A repository
+that returns a high number there is telling you the parse is not trustworthy.
 
 Frontend, from `outcrop-web`:
 

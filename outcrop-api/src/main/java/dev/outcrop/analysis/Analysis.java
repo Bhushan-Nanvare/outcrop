@@ -41,6 +41,12 @@ public class Analysis {
 	@Column(name = "java_file_count")
 	private Integer javaFileCount;
 
+	@Column(name = "class_count")
+	private Integer classCount;
+
+	@Column(name = "parse_failure_count")
+	private Integer parseFailureCount;
+
 	protected Analysis() {
 	}
 
@@ -59,6 +65,11 @@ public class Analysis {
 	public void recordClone(String commitSha, int javaFileCount) {
 		this.commitSha = commitSha;
 		this.javaFileCount = javaFileCount;
+	}
+
+	public void recordParse(int classCount, int parseFailureCount) {
+		this.classCount = classCount;
+		this.parseFailureCount = parseFailureCount;
 	}
 
 	public void complete() {
@@ -106,6 +117,14 @@ public class Analysis {
 
 	public Integer getJavaFileCount() {
 		return javaFileCount;
+	}
+
+	public Integer getClassCount() {
+		return classCount;
+	}
+
+	public Integer getParseFailureCount() {
+		return parseFailureCount;
 	}
 
 }
